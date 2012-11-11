@@ -94,7 +94,7 @@ class WP_WXR_Export {
 		$wheres[] = $this->post_type_where();
 		$wheres[] = $this->post_status_where();
 
-		$where = implode( ' AND ', $wheres );
+		$where = implode( ' AND ', array_filter( $wheres ) );
 		if ( $where ) $where = "WHERE $where";
 		return $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} AS p $join $where" );
 	}
