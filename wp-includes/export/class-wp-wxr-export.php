@@ -62,6 +62,17 @@ class WP_WXR_Export {
 		return apply_filters( 'the_generator', get_the_generator( 'export' ), 'export' );
 	}
 
+	public function authors() {
+		global $wpdb;
+		$authors = array();
+		$author_ids = $wpdb->get_col( "SELECT DISTINCT post_author FROM $wpdb->posts WHERE post_status != 'auto-draft'" );
+		foreach ( (array) $author_ids as $author_id ) {
+			$authors[] = get_userdata( $author_id );
+		}
+		$authors = array_filter( $authors );
+		return $authors;
+	}
+
 	/**
 	 * Exports the current data using a specific export writer class
 	 *

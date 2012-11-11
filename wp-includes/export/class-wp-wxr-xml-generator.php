@@ -62,6 +62,23 @@ XML;
 	}
 
 	function authors() {
+		$authors = $this->export->authors();
+		$xml = '';
+		foreach ( $authors as $author ) {
+			self::make_object_fields_cdata( $author, array( 'display_name', 'user_firstname', 'user_lastname' ) );
+			$xml .= <<<XML
+	<wp:author>
+		<wp:author_id>{$author->ID}</wp:author_id>
+		<wp:author_login>{$author->user_login}</wp:author_login>
+		<wp:author_email>{$author->user_email}</wp:author_email>
+		<wp:author_display_name>{$author->display_name_cdata}</wp:author_display_name>
+		<wp:author_first_name>{$author->user_firstname_cdata}</wp:author_first_name>
+		<wp:author_last_name>{$author->user_lastname_cdata}</wp:author_last_name>
+	</wp:author>
+
+XML;
+		}
+		return $xml;
 	}
 
 	function categories() {
@@ -85,5 +102,19 @@ XML;
 </channel>
 </rss>
 XML;
+	}
+
+	private static function make_object_fields_cdata( $object, $fields = array() ) {
+		foreach( $fields as $field ) {
+			$field_cdata = "{$field}_cdata";
+			$object->$field_cdata = self::cdata( $object->$field );
+		}
+	}
+
+	private static function cdata( $text ) {
+		if ( !seems_utf8( $text ) ) {
+			$text = utf8_encode( $text );
+		}
+		return '<![CDATA[' . str_replace( ']]>', ']]]]><![CDATA[>', $text ) . ']]>';
 	}
 }
