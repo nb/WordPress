@@ -21,11 +21,11 @@ class WP_WXR_Export {
 	}
 
 	public function get_xml() {
-		return $this->export_using_writer_class( 'WP_WXR_XML_Returner' );
+		return $this->export_using_writer_class( 'WP_WXR_Returner' );
 	}
 
 	public function export_to_xml_file( $file_name ) {
-		return $this->export_using_writer_class( 'WP_WXR_XML_File_Writer', array( $file_name ) );
+		return $this->export_using_writer_class( 'WP_WXR_File_Writer', array( $file_name ) );
 	}
 
 	/**

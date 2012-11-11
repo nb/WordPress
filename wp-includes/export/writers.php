@@ -1,5 +1,5 @@
 <?php
-abstract class WP_WXR_XML_Base_Writer {
+abstract class WP_WXR_Base_Writer {
 	protected $xml_generator;
 
 	function __construct( $xml_generator ) {
@@ -35,7 +35,7 @@ abstract class WP_WXR_XML_Base_Writer {
 	abstract protected function write( $xml );
 }
 
-class WP_WXR_XML_Returner extends WP_WXR_XML_Base_Writer {
+class WP_WXR_Returner extends WP_WXR_Base_Writer {
 	private $result = '';
 
 	public function export() {
@@ -48,7 +48,7 @@ class WP_WXR_XML_Returner extends WP_WXR_XML_Base_Writer {
 	}
 }
 
-class WP_WXR_XML_File_Writer extends WP_WXR_XML_Base_Writer {
+class WP_WXR_File_Writer extends WP_WXR_Base_Writer {
 	private $f;
 	private $file_name;
 
@@ -74,7 +74,7 @@ class WP_WXR_XML_File_Writer extends WP_WXR_XML_Base_Writer {
 	}
 }
 
-class WP_WXR_XML_Split_XML_Files_Writer extends WP_WXR_XML_Base_Writer {
+class WP_WXR_Split_Files_Writer extends WP_WXR_Base_Writer {
 	private $result = '';
 
 	function __construct( $export, $destination_directory, $filename_template, $max_file_size_in_bytes = null ) {
