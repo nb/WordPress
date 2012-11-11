@@ -14,6 +14,7 @@ class WP_WXR_Export {
 		'author' => null,
 		'start_date' => null,
 		'end_date' => null,
+		'category' => null,
 	);
 
 	private $post_ids;
@@ -88,17 +89,17 @@ class WP_WXR_Export {
 		if ( is_array( $this->filters['post_ids'] ) ) {
 			return $this->filters['post_ids'];
 		}
-		$join = '';
-		$wheres = array();
-
 		$this->post_type_where();
 		$this->status_where();
 		$this->author_where();
 		$this->start_date_where();
 		$this->end_date_where();
+		$this->category_where();
 
 		$where = implode( ' AND ', array_filter( $this->wheres ) );
 		if ( $where ) $where = "WHERE $where";
+		$join = implode( ' ', array_filter( $this->joins ) );
+
 		$post_ids = $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} AS p $join $where" );
 		$post_ids = array_merge( $post_ids, $this->attachments_for_specific_post_types( $post_ids ) );
 		return $post_ids;
@@ -154,6 +155,19 @@ class WP_WXR_Export {
 		$this->wheres[] = $wpdb->prepare( 'p.post_date <= %s', date( 'Y-m-d 23:59:59', $timestamp ) );
 	}
 
+	private function category_where() {
+		global $wpdb;
+		if ( 'post' != $this->filters['post_type'] ) {
+			return;
+		}
+		$category = $this->find_category_from_any_object( $this->filters['category'] );
+		if ( !$category ) {
+			return;
+		}
+		$this->joins[] = "INNER JOIN {$wpdb->term_relationships} AS tr ON (p.ID = tr.object_id)";
+		$this->wheres[] = $wpdb->prepare( 'tr.term_taxonomy_id = %d', $category->term_taxonomy_id );
+	}
+
 	private function attachments_for_specific_post_types( $post_ids ) {
 		global $wpdb;
 		if ( !$this->filters['post_type'] ) {
@@ -189,12 +203,24 @@ class WP_WXR_Export {
 	}
 
 	private function find_user_from_any_object( $user ) {
-		if ( is_numeric( $user ) )
+		if ( is_numeric( $user ) ) {
 			return get_user_by( 'id', $user );
-		elseif ( is_string( $user ) ) {
+		} elseif ( is_string( $user ) ) {
 			return get_user_by( 'login', $user );
 		} elseif ( isset( $user->ID ) ) {
 			return get_user_by( 'id', $user->ID );
+		}
+		return false;
+	}
+
+	private function find_category_from_any_object( $category ) {
+		if ( is_numeric( $category ) ) {
+			return get_term( $category, 'category' );
+		} elseif ( is_string( $category ) ) {
+			$term = term_exists( $category, 'category' );
+			return isset( $term['term_id'] )? get_term( $term['term_id'], 'category' ) : false;
+		} elseif ( isset( $category->term_id ) ) {
+			return get_term( $category->term_id, 'category' );
 		}
 		return false;
 	}
