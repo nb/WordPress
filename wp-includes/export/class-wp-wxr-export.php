@@ -21,10 +21,6 @@ class WP_WXR_Export {
 		$this->post_ids = $this->calculate_post_ids();
 	}
 
-	public function post_ids() {
-		return $this->post_ids;
-	}
-
 	public function get_xml() {
 		return $this->export_using_writer_class( 'WP_WXR_Returner' );
 	}
@@ -33,34 +29,8 @@ class WP_WXR_Export {
 		return $this->export_using_writer_class( 'WP_WXR_File_Writer', array( $file_name ) );
 	}
 
-	/**
-	 * Exports the current data using a specific export writer class
-	 *
-	 * You should use this method only when you need to export using a
-	 * custom writer. For built-in writers, please see the other public
-	 * methods like get_xml(), export_to_xml_file(), etc.
-	 *
-	 * Example:
-	 * $export = new WP_WXR_Export(…);
-	 * $export->export( 'WP_WXR_CSV_Writer', array( '/home/baba/baba.csv', ';' );
-	 *
-	 * @param string $writer_class_name The name of the PHP class representing the writer
-	 * @param mixed[] $writer_args Optional additional arguments with which to call the writer constructor
-	 */
-	public function export_using_writer_class( $writer_class_name, $writer_args = array() ) {
-		$xml_generator = new WP_WXR_XML_Generator( $this );
-		array_unshift( $writer_args, $xml_generator );
-		$writer_class = new ReflectionClass( $writer_class_name );
-		$writer = $writer_class->newInstanceArgs( $writer_args );
-		return $this->export_using_writer( $writer );
-	}
-
-	private function export_using_writer( $writer ) {
-		try {
-			return $writer->export();
-		} catch ( WP_WXR_Exception $e ) {
-			return new WP_Error( 'wxr-error', $e->getMessage() );
-		}
+	public function post_ids() {
+		return $this->post_ids;
 	}
 
 	public function charset() {
@@ -84,8 +54,26 @@ class WP_WXR_Export {
 		return apply_filters( 'the_generator', get_the_generator( 'export' ), 'export' );
 	}
 
-	private function bloginfo_rss( $section ) {
-		return apply_filters( 'bloginfo_rss', get_bloginfo_rss( $section ), $section );
+	/**
+	 * Exports the current data using a specific export writer class
+	 *
+	 * You should use this method only when you need to export using a
+	 * custom writer. For built-in writers, please see the other public
+	 * methods like get_xml(), export_to_xml_file(), etc.
+	 *
+	 * Example:
+	 * $export = new WP_WXR_Export(…);
+	 * $export->export( 'WP_WXR_CSV_Writer', array( '/home/baba/baba.csv', ';' );
+	 *
+	 * @param string $writer_class_name The name of the PHP class representing the writer
+	 * @param mixed[] $writer_args Optional additional arguments with which to call the writer constructor
+	 */
+	public function export_using_writer_class( $writer_class_name, $writer_args = array() ) {
+		$xml_generator = new WP_WXR_XML_Generator( $this );
+		array_unshift( $writer_args, $xml_generator );
+		$writer_class = new ReflectionClass( $writer_class_name );
+		$writer = $writer_class->newInstanceArgs( $writer_args );
+		return $this->export_using_writer( $writer );
 	}
 
 	private function calculate_post_ids() {
@@ -132,7 +120,18 @@ class WP_WXR_Export {
 			return false;
 		}
 		return $wpdb->prepare( 'p.post_author = %d', $user->ID );
+	}
 
+	private function export_using_writer( $writer ) {
+		try {
+			return $writer->export();
+		} catch ( WP_WXR_Exception $e ) {
+			return new WP_Error( 'wxr-error', $e->getMessage() );
+		}
+	}
+
+	private function bloginfo_rss( $section ) {
+		return apply_filters( 'bloginfo_rss', get_bloginfo_rss( $section ), $section );
 	}
 
 	private function build_IN_condition( $column_name, $values ) {
