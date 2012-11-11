@@ -8,7 +8,7 @@ class WP_WXR_Export {
 	private static $defaults = array(
 		'post_ids' => null,
 		'post_type' => null,
-		'post_status' => null,
+		'status' => null,
 	);
 
 	private $post_ids;
@@ -96,7 +96,7 @@ class WP_WXR_Export {
 		$wheres = array();
 
 		$wheres[] = $this->post_type_where();
-		$wheres[] = $this->post_status_where();
+		$wheres[] = $this->status_where();
 
 		$where = implode( ' AND ', array_filter( $wheres ) );
 		if ( $where ) $where = "WHERE $where";
@@ -116,11 +116,11 @@ class WP_WXR_Export {
 		return $this->build_IN_condition( 'p.post_type', $post_types );
 	}
 
-	private function post_status_where() {
+	private function status_where() {
 		global $wpdb;
-		if ( !$this->filters['post_status'] )
+		if ( !$this->filters['status'] )
 			return "p.post_status != 'auto-draft'";
-		return $wpdb->prepare( 'p.post_status = %s', $this->filters['post_status'] );
+		return $wpdb->prepare( 'p.post_status = %s', $this->filters['status'] );
 	}
 
 	private function build_IN_condition( $column_name, $values ) {
