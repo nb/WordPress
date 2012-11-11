@@ -10,6 +10,8 @@ class WP_WXR_Export {
 		'post_type' => null,
 		'status' => null,
 		'author' => null,
+		'start_date' => null,
+		'end_date' => null,
 	);
 
 	private $post_ids;
@@ -87,6 +89,8 @@ class WP_WXR_Export {
 		$wheres[] = $this->post_type_where();
 		$wheres[] = $this->status_where();
 		$wheres[] = $this->author_where();
+		$wheres[] = $this->start_date_where();
+		$wheres[] = $this->end_date_where();
 
 		$where = implode( ' AND ', array_filter( $wheres ) );
 		if ( $where ) $where = "WHERE $where";
@@ -120,6 +124,24 @@ class WP_WXR_Export {
 			return false;
 		}
 		return $wpdb->prepare( 'p.post_author = %d', $user->ID );
+	}
+
+	private function start_date_where() {
+		global $wpdb;
+		$timestamp = strtotime( $this->filters['start_date'] );
+		if ( !$timestamp ) {
+			return false;
+		}
+		return $wpdb->prepare( 'p.post_date >= %s', date( 'Y-m-d 00:00:00', $timestamp ) );
+	}
+
+	private function end_date_where() {
+		global $wpdb;
+		$timestamp = strtotime( $this->filters['end_date'] );
+		if ( !$timestamp ) {
+			return false;
+		}
+		return $wpdb->prepare( 'p.post_date <= %s', date( 'Y-m-d 23:59:59', $timestamp ) );
 	}
 
 	private function export_using_writer( $writer ) {
