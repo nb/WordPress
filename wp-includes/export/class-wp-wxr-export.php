@@ -20,6 +20,9 @@ class WP_WXR_Export {
 	private $filters;
 	private $xml_gen;
 
+	private $wheres = array();
+	private $joins = array();
+
 	public function __construct( $filters = array() ) {
 		$this->filters = wp_parse_args( $filters, self::$defaults );
 		$this->post_ids = $this->calculate_post_ids();
@@ -88,13 +91,13 @@ class WP_WXR_Export {
 		$join = '';
 		$wheres = array();
 
-		$wheres[] = $this->post_type_where();
-		$wheres[] = $this->status_where();
-		$wheres[] = $this->author_where();
-		$wheres[] = $this->start_date_where();
-		$wheres[] = $this->end_date_where();
+		$this->post_type_where();
+		$this->status_where();
+		$this->author_where();
+		$this->start_date_where();
+		$this->end_date_where();
 
-		$where = implode( ' AND ', array_filter( $wheres ) );
+		$where = implode( ' AND ', array_filter( $this->wheres ) );
 		if ( $where ) $where = "WHERE $where";
 		$post_ids = $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} AS p $join $where" );
 		$post_ids = array_merge( $post_ids, $this->attachments_for_specific_post_types( $post_ids ) );
@@ -109,43 +112,46 @@ class WP_WXR_Export {
 		}
 		$post_types = get_post_types( $post_types_filters );
 		if ( !$post_types ) {
-			return 'p.post_type IS NULL';
+			$this->wheres[] = 'p.post_type IS NULL';
+			return;
 		}
-		return $this->build_IN_condition( 'p.post_type', $post_types );
+		$this->wheres[] = $this->build_IN_condition( 'p.post_type', $post_types );
 	}
 
 	private function status_where() {
 		global $wpdb;
-		if ( !$this->filters['status'] )
-			return "p.post_status != 'auto-draft'";
-		return $wpdb->prepare( 'p.post_status = %s', $this->filters['status'] );
+		if ( !$this->filters['status'] ) {
+			$this->wheres[] = "p.post_status != 'auto-draft'";
+			return;
+		}
+		$this->wheres[] = $wpdb->prepare( 'p.post_status = %s', $this->filters['status'] );
 	}
 
 	private function author_where() {
 		global $wpdb;
 		$user = $this->find_user_from_any_object( $this->filters['author'] );
 		if ( !$user || is_wp_error( $user ) ) {
-			return false;
+			return;
 		}
-		return $wpdb->prepare( 'p.post_author = %d', $user->ID );
+		$this->wheres[] = $wpdb->prepare( 'p.post_author = %d', $user->ID );
 	}
 
 	private function start_date_where() {
 		global $wpdb;
 		$timestamp = strtotime( $this->filters['start_date'] );
 		if ( !$timestamp ) {
-			return false;
+			return;
 		}
-		return $wpdb->prepare( 'p.post_date >= %s', date( 'Y-m-d 00:00:00', $timestamp ) );
+		$this->wheres[] = $wpdb->prepare( 'p.post_date >= %s', date( 'Y-m-d 00:00:00', $timestamp ) );
 	}
 
 	private function end_date_where() {
 		global $wpdb;
 		$timestamp = strtotime( $this->filters['end_date'] );
 		if ( !$timestamp ) {
-			return false;
+			return;
 		}
-		return $wpdb->prepare( 'p.post_date <= %s', date( 'Y-m-d 23:59:59', $timestamp ) );
+		$this->wheres[] = $wpdb->prepare( 'p.post_date <= %s', date( 'Y-m-d 23:59:59', $timestamp ) );
 	}
 
 	private function attachments_for_specific_post_types( $post_ids ) {
