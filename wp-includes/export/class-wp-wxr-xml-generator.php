@@ -82,6 +82,23 @@ XML;
 	}
 
 	function categories() {
+		$categories = $this->export->categories();
+		$xml = '';
+		foreach( $categories as $term_id => $category ) {
+			self::make_object_fields_cdata( $category, array( 'name', 'description' ) );
+			$category->parent_slug = $category->parent? $categories[$category->parent]->slug : '';
+			$xml .= <<<XML
+	<wp:category>
+		<wp:term_id>{$category->term_id}</wp:term_id>
+		<wp:category_nicename>{$category->slug}</wp:category_nicename>
+		<wp:category_parent>{$category->parent_slug}</wp:category_parent>
+		<wp:cat_name>{$category->name_cdata}</wp:cat_name>
+		<wp:category_description>{$category->description_cdata}</wp:category_description>
+	</wp:category>
+
+XML;
+		}
+		return $xml;
 	}
 
 	function tags() {

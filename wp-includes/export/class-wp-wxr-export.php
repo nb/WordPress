@@ -76,6 +76,18 @@ class WP_WXR_Export {
 		return $authors;
 	}
 
+	public function categories() {
+		if ( $this->category ) {
+			return $this->category;
+		}
+		if ( $this->filters['post_type'] ) {
+			return array();
+		}
+		$categories = (array) get_categories( array( 'get' => 'all' ) );
+		$categories = self::topologically_sort_terms( $categories );
+		return $categories;
+	}
+
 	/**
 	 * Exports the current data using a specific export writer class
 	 *
@@ -239,6 +251,17 @@ class WP_WXR_Export {
 			return get_term( $category->term_id, 'category' );
 		}
 		return false;
+	}
+
+	private static function topologically_sort_terms( $terms ) {
+		$sorted = array();
+		while ( $term = array_shift( $terms ) ) {
+			if ( $term->parent == 0 || isset( $sorted[$term->parent] ) )
+				$sorted[$term->term_id] = $term;
+			else
+				$terms[] = $term;
+		}
+		return $sorted;
 	}
 }
 
