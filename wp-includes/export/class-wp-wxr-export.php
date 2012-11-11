@@ -5,7 +5,11 @@
  * An immutable object, which gathers all data needed for the export.
  */
 class WP_WXR_Export {
-	private static $defaults = array( 'post_ids' => null, 'post_type' => null, 'post_status' => null, );
+	private static $defaults = array(
+		'post_ids' => null,
+		'post_type' => null,
+		'post_status' => null,
+	);
 
 	private $post_ids;
 	private $filters;
