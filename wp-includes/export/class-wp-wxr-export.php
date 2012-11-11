@@ -11,7 +11,7 @@ class WP_WXR_Export {
 	private $filters;
 	private $xml_gen;
 
-	public function __construct( $filters ) {
+	public function __construct( $filters = array( 'all' => true ) ) {
 		$this->filters = wp_parse_args( $filters, self::$defaults );
 		$this->post_ids = $this->calculate_post_ids();
 	}
