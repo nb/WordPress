@@ -9,6 +9,7 @@ class WP_WXR_Export {
 		'post_ids' => null,
 		'post_type' => null,
 		'status' => null,
+		'author' => null,
 	);
 
 	private $post_ids;
@@ -97,6 +98,7 @@ class WP_WXR_Export {
 
 		$wheres[] = $this->post_type_where();
 		$wheres[] = $this->status_where();
+		$wheres[] = $this->author_where();
 
 		$where = implode( ' AND ', array_filter( $wheres ) );
 		if ( $where ) $where = "WHERE $where";
@@ -123,6 +125,16 @@ class WP_WXR_Export {
 		return $wpdb->prepare( 'p.post_status = %s', $this->filters['status'] );
 	}
 
+	private function author_where() {
+		global $wpdb;
+		$user = $this->find_user_from_any_object( $this->filters['author'] );
+		if ( !$user || is_wp_error( $user ) ) {
+			return false;
+		}
+		return $wpdb->prepare( 'p.post_author = %d', $user->ID );
+
+	}
+
 	private function build_IN_condition( $column_name, $values ) {
 		global $wpdb;
 		if ( !is_array( $values ) || empty( $values ) ) {
@@ -130,6 +142,17 @@ class WP_WXR_Export {
 		}
 		$esses = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
 		return $wpdb->prepare( "$column_name IN ($esses)", $values );
+	}
+
+	private function find_user_from_any_object( $user ) {
+		if ( is_numeric( $user ) )
+			return get_user_by( 'id', $user );
+		elseif ( is_string( $user ) ) {
+			return get_user_by( 'login', $user );
+		} elseif ( isset( $user->ID ) ) {
+			return get_user_by( 'id', $user->ID );
+		}
+		return false;
 	}
 }
 
