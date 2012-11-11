@@ -24,6 +24,9 @@ class WP_WXR_Export {
 	private $wheres = array();
 	private $joins = array();
 
+	private $author;
+	private $category;
+
 	public function __construct( $filters = array() ) {
 		$this->filters = wp_parse_args( $filters, self::$defaults );
 		$this->post_ids = $this->calculate_post_ids();
@@ -145,6 +148,7 @@ class WP_WXR_Export {
 		if ( !$user || is_wp_error( $user ) ) {
 			return;
 		}
+		$this->author = $user;
 		$this->wheres[] = $wpdb->prepare( 'p.post_author = %d', $user->ID );
 	}
 
@@ -175,6 +179,7 @@ class WP_WXR_Export {
 		if ( !$category ) {
 			return;
 		}
+		$this->category = $category;
 		$this->joins[] = "INNER JOIN {$wpdb->term_relationships} AS tr ON (p.ID = tr.object_id)";
 		$this->wheres[] = $wpdb->prepare( 'tr.term_taxonomy_id = %d', $category->term_taxonomy_id );
 	}
