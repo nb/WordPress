@@ -5,6 +5,8 @@
  * An immutable object, which gathers all data needed for the export.
  */
 class WP_WXR_Export {
+	const QUERY_CHUNK = 100;
+
 	private static $defaults = array(
 		'post_ids' => null,
 		'post_type' => null,
@@ -94,14 +96,16 @@ class WP_WXR_Export {
 
 		$where = implode( ' AND ', array_filter( $wheres ) );
 		if ( $where ) $where = "WHERE $where";
-		return $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} AS p $join $where" );
+		$post_ids = $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} AS p $join $where" );
+		$post_ids = array_merge( $post_ids, $this->attachments_for_specific_post_types( $post_ids ) );
+		return $post_ids;
 	}
 
 	private function post_type_where() {
 		global $wpdb;
 		$post_types_filters = array( 'can_export' => true );
 		if ( $this->filters['post_type'] ) {
-			$post_types_filters += array( 'name' => $this->filters['post_type'] );
+			$post_types_filters = array_merge( $post_types_filters, array( 'name' => $this->filters['post_type'] ) );
 		}
 		$post_types = get_post_types( $post_types_filters );
 		if ( !$post_types ) {
@@ -142,6 +146,19 @@ class WP_WXR_Export {
 			return false;
 		}
 		return $wpdb->prepare( 'p.post_date <= %s', date( 'Y-m-d 23:59:59', $timestamp ) );
+	}
+
+	private function attachments_for_specific_post_types( $post_ids ) {
+		global $wpdb;
+		if ( !$this->filters['post_type'] ) {
+			return array();
+		}
+		$attachment_ids = array();
+		while ( $batch_of_post_ids = array_splice( $post_ids, 0, self::QUERY_CHUNK ) ) {
+			$post_parent_condition = $this->build_IN_condition( 'post_parent', $batch_of_post_ids );
+			$attachment_ids = array_merge( $attachment_ids, (array)$wpdb->get_col( "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND $post_parent_condition" ) );
+		}
+		return array_map( 'intval', $attachment_ids );
 	}
 
 	private function export_using_writer( $writer ) {
