@@ -1,6 +1,6 @@
 <?php
 /**
- * Represents a set of posts to be exported
+ * Represents a set of posts and other site data to be exported.
  *
  * An immutable object, which gathers all data needed for the export.
  */
@@ -21,21 +21,36 @@ class WP_WXR_Export {
 	}
 
 	public function get_xml() {
-		return $this->export( 'WP_WXR_XML_Returner' );
+		return $this->export_using_writer_class( 'WP_WXR_XML_Returner' );
 	}
 
 	public function export_to_xml_file( $file_name ) {
-		return $this->export( 'WP_WXR_XML_File_Writer', $file_name );
+		return $this->export_using_writer_class( 'WP_WXR_XML_File_Writer', array( $file_name ) );
 	}
 
-	public function export() {
-		$args = func_get_args();
-		$writer_class_name = array_shift( $args );
-		$writer_args = $args;
+	/**
+	 * Exports the current data using a specific export writer class
+	 *
+	 * You should use this method only when you need to export using a
+	 * custom writer. For built-in writers, please see the other public
+	 * methods like get_xml(), export_to_xml_file(), etc.
+	 *
+	 * Example:
+	 * $export = new WP_WXR_Export(…);
+	 * $export->export( 'WP_WXR_CSV_Writer', array( '/home/baba/baba.csv', ';' );
+	 *
+	 * @param string $writer_class_name The name of the PHP class representing the writer
+	 * @param mixed[] $writer_args Optional additional arguments with which to call the writer constructor
+	 */
+	public function export_using_writer_class( $writer_class_name, $writer_args = array() ) {
 		$xml_generator = new WP_WXR_XML_Generator( $this );
 		array_unshift( $writer_args, $xml_generator );
 		$writer_class = new ReflectionClass( $writer_class_name );
 		$writer = $writer_class->newInstanceArgs( $writer_args );
+		return $this->export_using_writer( $writer );
+	}
+
+	private function export_using_writer( $writer ) {
 		try {
 			return $writer->export();
 		} catch ( WP_WXR_Exception $e ) {
