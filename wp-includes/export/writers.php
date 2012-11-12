@@ -7,40 +7,24 @@ abstract class WP_WXR_Base_Writer {
 	}
 
 	public function export() {
-		$this->export_before_posts();
-		$this->export_posts();
-		$this->export_after_posts();
-	}
-
-	protected function export_before_posts() {
-		$this->write( $this->xml_generator->header() );
-		$this->write( $this->xml_generator->site_metadata() );
-		$this->write( $this->xml_generator->authors() );
-		$this->write( $this->xml_generator->categories() );
-		$this->write( $this->xml_generator->tags() );
-		$this->write( $this->xml_generator->nav_menu_terms() );
-		$this->write( $this->xml_generator->custom_taxonomies_terms() );
-	}
-
-	protected function export_posts() {
+		$this->write( $this->xml_generator->before_posts() );
 		foreach( $this->xml_generator->posts() as $post_in_wxr ) {
 			$this->write( $post_in_wxr );
 		}
+		$this->write( $this->xml_generator->after_posts() );
 	}
 
-	protected function export_after_posts() {
-		$this->write( $this->xml_generator->footer() );
+	protected function write( $xml ) {
+		echo $xml;
 	}
-
-	abstract protected function write( $xml );
 }
 
 class WP_WXR_XML_Over_HTTP extends WP_WXR_Base_Writer {
 	private $file_name;
 
 	function __construct( $xml_generator, $file_name ) {
-		$this->file_name = $file_name;
 		parent::__construct( $xml_generator );
+		$this->file_name = $file_name;
 	}
 
 	public function export() {
@@ -73,8 +57,8 @@ class WP_WXR_File_Writer extends WP_WXR_Base_Writer {
 	private $file_name;
 
 	public function __construct( $xml_generator, $file_name ) {
-		$this->file_name = $file_name;
 		parent::__construct( $xml_generator );
+		$this->file_name = $file_name;
 	}
 
 	public function export() {
@@ -96,39 +80,67 @@ class WP_WXR_File_Writer extends WP_WXR_Base_Writer {
 
 class WP_WXR_Split_Files_Writer extends WP_WXR_Base_Writer {
 	private $result = '';
+	private $f;
+	private $next_file_number = 0;
+	private $current_file_size = 0;
 
-	function __construct( $export, $destination_directory, $filename_template, $max_file_size_in_bytes = null ) {
-		$this->max_file_size_in_bytes = is_null( $max_file_size_in_bytes ) ? 15 * MB_IN_BYTES : $max_file_size_in_bytes;
+	function __construct( $xml_generator, $destination_directory, $filename_template, $max_file_size = null ) {
+		parent::__construct( $xml_generator );
+		$this->max_file_size = is_null( $max_file_size ) ? 15 * MB_IN_BYTES : $max_file_size;
+		$this->destination_directory = $destination_directory;
+		$this->filename_template = $filename_template;
+		$this->before_posts_xml = $this->xml_generator->before_posts();
+		$this->after_posts_xml = $this->xml_generator->after_posts();
 	}
 
-	private function export_() {
-		$before_posts = $this->get_xml_from_method( 'export_before_posts' );
-		$after_posts = $this->get_xml_from_method( 'export_after_posts' );
-		$size_of_non_posts = strlen( $before_posts ) + strlen( $after_posts );
-		$wxr = $before_posts;
-		foreach( $this->xml_generator->posts() as $post ) {
-			$post_wxr = $this->xml_generator->post( $post );
-			if ( strlen( $post_wxr ) + $size_of_non_posts > $this->max_file_size_in_bytes ) {
-				$this->write_next_file( $wxr . $after_posts );
-				$wxr = '';
+	public function export() {
+		$this->start_new_file();
+		foreach( $this->xml_generator->posts() as $post_xml ) {
+			if ( $this->current_file_size + strlen( $post_xml ) > $this->max_file_size ) {
+				$this->start_new_file();
 			}
-			$wxr .= $post_wxr;
+			$this->write( $post_xml );
 		}
-		$this->write_next_file( $wxr . $after_posts );
+		$this->close_current_file();
 	}
 
-	private function get_xml_from_method( $method_name ) {
-		$this->result = '';
-		$this->accumulate = true;
-		$this->$method_name();
-		$this->accumulate = false;
+	protected function write( $xml ) {
+		$res = fwrite( $this->f, $xml);
+		if ( false === $res ) {
+			throw new WP_WXR_Exception( __( 'WXR Export: error writing to export file.' ) );
+		}
+		$this->current_file_size += strlen( $xml );
 	}
 
-	function write( $s ) {
-		if ( $this->accumulate ) {
-			$this->result = $s;
-		} else {
-			fwrite( $this->f, $s );
+	private function start_new_file() {
+		if ( $this->f ) {
+			$this->close_current_file();
 		}
+		$file_path = $this->next_file_path();
+		$this->f = fopen( $file_path, 'w' );
+		if ( !$this->f ) {
+			throw new WP_WXR_Exception( sprintf( __( 'WXR Export: error opening %s for writing.' ), $file_path ) );
+		}
+		$this->current_file_size = 0;
+		$this->write( $this->before_posts_xml );
 	}
+
+	private function close_current_file() {
+		if ( !$this->f ) {
+			return;
+		}
+		$this->write( $this->after_posts_xml );
+		fclose( $this->f );
+	}
+
+	private function next_file_name() {
+		$next_file_name = sprintf( $this->filename_template, $this->next_file_number );
+		$this->next_file_number++;
+		return $next_file_name;
+	}
+
+	private function next_file_path() {
+		return untrailingslashit( $this->destination_directory ) . DIRECTORY_SEPARATOR . $this->next_file_name();
+	}
+
 }

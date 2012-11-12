@@ -20,6 +20,27 @@ class WP_WXR_XML_Generator {
 		return array( 'header', 'site_metadata', 'authors', 'categories', 'tags', 'nav_menu_terms', 'custom_taxonomies_terms', 'posts', 'footer', );
 	}
 
+
+	function before_posts() {
+		$before_posts_xml = '';
+		$before_posts_xml .= $this->header();
+		$before_posts_xml .= $this->site_metadata();
+		$before_posts_xml .= $this->authors();
+		$before_posts_xml .= $this->categories();
+		$before_posts_xml .= $this->tags();
+		$before_posts_xml .= $this->nav_menu_terms();
+		$before_posts_xml .= $this->custom_taxonomies_terms();
+		return $before_posts_xml;
+	}
+
+	function posts() {
+		return new WP_Map_Iterator( $this->export->posts(), array( $this, 'post' ) );
+	}
+
+	function after_posts() {
+		return $this->footer();
+	}
+
 	function header() {
 		$wxr_version = WXR_VERSION;
 		$charset = $this->export->charset();
@@ -154,10 +175,6 @@ XML;
 XML;
 		}
 		return $xml;
-	}
-
-	function posts() {
-		return new WP_Map_Iterator( $this->export->posts(), array( $this, 'post' ) );
 	}
 
 	function post( $post ) {
