@@ -102,6 +102,22 @@ XML;
 	}
 
 	function tags() {
+		$tags = $this->export->tags();
+		$xml = '';
+		foreach( $tags as $tag ) {
+			self::make_object_fields_cdata( $tag, array( 'name', 'description' ) );
+			$xml .= <<<XML
+	<wp:tag>
+		<wp:term_id>{$tag->term_id}</wp:term_id>
+		<wp:tag_slug>{$tag->slug}</wp:tag_nicename>
+		<wp:tag_parent>{$tag->parent_slug}</wp:tag_parent>
+		<wp:tag_name>{$tag->name_cdata}</wp:tag_name>
+		<wp:tag_description>{$tag->description_cdata}</wp:tag_description>
+	</wp:tag>
+
+XML;
+		}
+		return $xml;
 	}
 
 	function nav_menu_terms() {

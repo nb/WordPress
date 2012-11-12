@@ -88,6 +88,14 @@ class WP_WXR_Export {
 		return $categories;
 	}
 
+	public function tags() {
+		if ( $this->filters['post_type'] ) {
+			return array();
+		}
+		$tags = (array) get_tags( array( 'get' => 'all' ) );
+		return $tags;
+	}
+
 	/**
 	 * Exports the current data using a specific export writer class
 	 *
