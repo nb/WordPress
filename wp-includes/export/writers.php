@@ -35,6 +35,26 @@ abstract class WP_WXR_Base_Writer {
 	abstract protected function write( $xml );
 }
 
+class WP_WXR_XML_Over_HTTP extends WP_WXR_Base_Writer {
+	private $file_name;
+
+	function __construct( $xml_generator, $file_name ) {
+		$this->file_name = $file_name;
+		parent::__construct( $xml_generator );
+	}
+
+	public function export() {
+		header( 'Content-Description: File Transfer' );
+		header( 'Content-Disposition: attachment; filename=' . $this->file_name );
+		header( 'Content-Type: text/xml; charset=' . get_option( 'blog_charset' ), true );
+		parent::export();
+	}
+
+	protected function write( $xml ) {
+		echo $xml;
+	}
+}
+
 class WP_WXR_Returner extends WP_WXR_Base_Writer {
 	private $result = '';
 
