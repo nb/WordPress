@@ -157,7 +157,20 @@ XML;
 	}
 
 	function posts() {
-		return array( 'a', 'b' );
+		return new WP_Map_Iterator( $this->export->posts(), array( $this, 'post' ) );
+	}
+
+	function post( $post ) {
+		global $wpdb;
+		$xml = <<<XML
+	<item>
+		<title>{$post->post_title_rss}</title>
+		<!-- TODO: add the rest of the fields -->
+		<wp:is_sticky>{$post->is_sticky}</wp:is_sticky>
+	</item>
+
+XML;
+		return $xml;
 	}
 
 	function footer() {

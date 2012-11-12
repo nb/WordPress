@@ -110,6 +110,21 @@ class WP_WXR_Export {
 		return wp_get_nav_menus();
 	}
 
+	public function exportify_post( $post ) {
+		$GLOBALS['wp_query']->in_the_loop = true;
+		$GLOBALS['post'] = $post;
+		setup_postdata( $post );
+		$post->post_title_rss = apply_filters( 'the_title_rss', $post->post_title );
+		$post->is_sticky = is_sticky( $post->ID ) ? 1 : 0;
+		// TODO: add the rest of the extra fields, modifications, etc.
+		return $post;
+	}
+
+	public function posts() {
+		$posts_iterator = new WP_Post_IDs_Iterator( $this->post_ids, self::QUERY_CHUNK );
+		return new WP_Map_Iterator( $posts_iterator, array( $this, 'exportify_post' ) );
+	}
+
 	/**
 	 * Exports the current data using a specific export writer class
 	 *
