@@ -1,5 +1,14 @@
 <?php
 /**
+ * Version number for the export format.
+ *
+ * Bump this when something changes that might affect compatibility.
+ *
+ * @since 2.5.0
+ */
+define( 'WXR_VERSION', '1.2' );
+
+/**
  * Responsible for generating the WXR XML from the data in WP_WXR_Export
  */
 class WP_WXR_XML_Generator {
