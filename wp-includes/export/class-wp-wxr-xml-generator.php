@@ -8,7 +8,7 @@ class WP_WXR_XML_Generator {
 	}
 
 	static function get_parts() {
-		return array( 'header', 'site_metadata', 'authors', 'categories', 'tags', 'nav_menu_terms', 'other_terms', 'posts', 'footer', );
+		return array( 'header', 'site_metadata', 'authors', 'categories', 'tags', 'nav_menu_terms', 'custom_taxonomies_terms', 'posts', 'footer', );
 	}
 
 	function header() {
@@ -120,9 +120,31 @@ XML;
 	}
 
 	function nav_menu_terms() {
+		return $this->terms( $this->export->nav_menu_terms() );
 	}
 
-	function other_terms() {
+	function custom_taxonomies_terms() {
+		return $this->terms( $this->export->custom_taxonomies_terms() );
+	}
+
+	private function terms( $terms ) {
+		$xml = '';
+		foreach( $terms as $term ) {
+			$term->parent_slug = $term->parent? $terms[$term->parent]->slug : '';
+			self::make_object_fields_cdata( $term, array( 'name', 'description' ) );
+			$xml .= <<<XML
+	<wp:term>
+		<wp:term_id>{$term->term_id}</wp:term_id>
+		<wp:term_taxonomy>{$term->taxonomy}</wp:term_taxonomy>
+		<wp:term_slug>{$term->slug}</wp:term_slug>
+		<wp:term_parent>{$term->parent_slug}</wp:term_parent>
+		<wp:tag_name>{$term->name_cdata}</wp:tag_name>
+		<wp:tag_description>{$term->description_cdata}</wp:tag_description>
+	</wp:term>
+
+XML;
+		}
+		return $xml;
 	}
 
 	function posts() {

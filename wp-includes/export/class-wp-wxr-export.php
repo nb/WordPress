@@ -96,6 +96,20 @@ class WP_WXR_Export {
 		return $tags;
 	}
 
+	public function custom_taxonomies_terms() {
+		if ( $this->filters['post_type'] ) {
+			return array();
+		}
+		$custom_taxonomies = get_taxonomies( array( '_builtin' => false ) );
+		$custom_terms = (array) get_terms( $custom_taxonomies, array( 'get' => 'all' ) );
+		$custom_terms = self::topologically_sort_terms( $custom_terms );
+		return $custom_terms;
+	}
+
+	public function nav_menu_terms() {
+		return wp_get_nav_menus();
+	}
+
 	/**
 	 * Exports the current data using a specific export writer class
 	 *

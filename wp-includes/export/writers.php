@@ -19,7 +19,7 @@ abstract class WP_WXR_Base_Writer {
 		$this->write( $this->xml_generator->categories() );
 		$this->write( $this->xml_generator->tags() );
 		$this->write( $this->xml_generator->nav_menu_terms() );
-		$this->write( $this->xml_generator->other_terms() );
+		$this->write( $this->xml_generator->custom_taxonomies_terms() );
 	}
 
 	protected function export_posts() {
