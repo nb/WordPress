@@ -126,6 +126,7 @@ require( ABSPATH . WPINC . '/category-template.php' );
 require( ABSPATH . WPINC . '/comment.php' );
 require( ABSPATH . WPINC . '/comment-template.php' );
 require( ABSPATH . WPINC . '/rewrite.php' );
+require( ABSPATH . WPINC . '/class-wp-post-ids-iterator.php' );
 require( ABSPATH . WPINC . '/export/class-wp-wxr-export.php' );
 require( ABSPATH . WPINC . '/export/class-wp-wxr-xml-generator.php' );
 require( ABSPATH . WPINC . '/export/writers.php' );
