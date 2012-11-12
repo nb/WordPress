@@ -40,6 +40,10 @@ class WP_WXR_Export {
 		return $this->export_using_writer_class( 'WP_WXR_File_Writer', array( $file_name ) );
 	}
 
+	public function export_to_xml_files( $destination_directory, $filename_template, $max_file_size = null ) {
+		return $this->export_using_writer_class( 'WP_WXR_Split_Files_Writer', array( $destination_directory, $filename_template, $max_file_size ) );
+	}
+
 	public function serve_xml( $file_name ) {
 		return $this->export_using_writer_class( 'WP_WXR_XML_Over_HTTP', array( $file_name ) );
 	}
