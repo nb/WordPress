@@ -164,7 +164,7 @@ class WP_WXR_Export {
 			$this->wheres[] = 'p.post_type IS NULL';
 			return;
 		}
-		$this->wheres[] = $this->build_IN_condition( 'p.post_type', $post_types );
+		$this->wheres[] = $wpdb->build_IN_condition( 'p.post_type', $post_types );
 	}
 
 	private function status_where() {
@@ -225,7 +225,7 @@ class WP_WXR_Export {
 		}
 		$attachment_ids = array();
 		while ( $batch_of_post_ids = array_splice( $post_ids, 0, self::QUERY_CHUNK ) ) {
-			$post_parent_condition = $this->build_IN_condition( 'post_parent', $batch_of_post_ids );
+			$post_parent_condition = $wpdb->build_IN_condition( 'post_parent', $batch_of_post_ids );
 			$attachment_ids = array_merge( $attachment_ids, (array)$wpdb->get_col( "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND $post_parent_condition" ) );
 		}
 		return array_map( 'intval', $attachment_ids );
@@ -241,15 +241,6 @@ class WP_WXR_Export {
 
 	private function bloginfo_rss( $section ) {
 		return apply_filters( 'bloginfo_rss', get_bloginfo_rss( $section ), $section );
-	}
-
-	private function build_IN_condition( $column_name, $values ) {
-		global $wpdb;
-		if ( !is_array( $values ) || empty( $values ) ) {
-			return false;
-		}
-		$esses = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
-		return $wpdb->prepare( "$column_name IN ($esses)", $values );
 	}
 
 	private function find_user_from_any_object( $user ) {

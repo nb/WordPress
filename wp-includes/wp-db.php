@@ -1749,4 +1749,22 @@ class wpdb {
 	function db_version() {
 		return preg_replace( '/[^0-9.].*/', '', mysql_get_server_info( $this->dbh ) );
 	}
+
+	/**
+	 * Builds a SQL condition in the form "post_id IN (1, 2, 3, 4)"
+	 *
+	 * @since 3.6.0
+	 *
+	 * @param string $column_name The name of the table column from the IN condition
+	 * @param array $values Array of values in which the column value should be
+	 * @param string $format Optional printf format specifier for the elements of the array. Defaults to %s.
+	 * @return string The IN condition, with escaped values. If there are no values, the return value is an empty string.
+	 */
+	function build_IN_condition( $column_name, $values, $format = '%s' ) {
+		if ( !is_array( $values ) || empty( $values ) ) {
+			return '';
+		}
+		$formats = implode( ', ', array_fill( 0, count( $values ), $format ) );
+		return $this->prepare( "$column_name IN ($formats)", $values );
+	}
 }
