@@ -33,19 +33,19 @@ class WP_WXR_Export {
 	}
 
 	public function get_xml() {
-		return $this->export_using_writer_class( 'WP_WXR_Returner' );
+		return $this->export_xml_using_writer_class( 'WP_WXR_Returner' );
 	}
 
 	public function export_to_xml_file( $file_name ) {
-		return $this->export_using_writer_class( 'WP_WXR_File_Writer', array( $file_name ) );
+		return $this->export_xml_using_writer_class( 'WP_WXR_File_Writer', array( $file_name ) );
 	}
 
 	public function export_to_xml_files( $destination_directory, $filename_template, $max_file_size = null ) {
-		return $this->export_using_writer_class( 'WP_WXR_Split_Files_Writer', array( $destination_directory, $filename_template, $max_file_size ) );
+		return $this->export_xml_using_writer_class( 'WP_WXR_File_Writer', array( $destination_directory, $filename_template, $max_file_size ) );
 	}
 
 	public function serve_xml( $file_name ) {
-		return $this->export_using_writer_class( 'WP_WXR_XML_Over_HTTP', array( $file_name ) );
+		return $this->export_xml_using_writer_class( 'WP_WXR_XML_Over_HTTP', array( $file_name ) );
 	}
 
 	public function post_ids() {
@@ -147,12 +147,20 @@ class WP_WXR_Export {
 	 * @param string $writer_class_name The name of the PHP class representing the writer
 	 * @param mixed[] $writer_args Optional additional arguments with which to call the writer constructor
 	 */
-	public function export_using_writer_class( $writer_class_name, $writer_args = array() ) {
+	public function export_xml_using_writer_class( $writer_class_name, $writer_args = array() ) {
 		$xml_generator = new WP_WXR_XML_Generator( $this );
 		array_unshift( $writer_args, $xml_generator );
 		$writer_class = new ReflectionClass( $writer_class_name );
 		$writer = $writer_class->newInstanceArgs( $writer_args );
 		return $this->export_using_writer( $writer );
+	}
+
+	private function export_using_writer( $writer ) {
+		try {
+			return $writer->export();
+		} catch ( WP_WXR_Exception $e ) {
+			return new WP_Error( 'wxr-error', $e->getMessage() );
+		}
 	}
 
 	private function calculate_post_ids() {
@@ -252,14 +260,6 @@ class WP_WXR_Export {
 			$attachment_ids = array_merge( $attachment_ids, (array)$wpdb->get_col( "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND $post_parent_condition" ) );
 		}
 		return array_map( 'intval', $attachment_ids );
-	}
-
-	private function export_using_writer( $writer ) {
-		try {
-			return $writer->export();
-		} catch ( WP_WXR_Exception $e ) {
-			return new WP_Error( 'wxr-error', $e->getMessage() );
-		}
 	}
 
 	private function bloginfo_rss( $section ) {
