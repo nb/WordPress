@@ -16,11 +16,6 @@ class WP_WXR_XML_Generator {
 		$this->export = $export;
 	}
 
-	static function get_parts() {
-		return array( 'header', 'site_metadata', 'authors', 'categories', 'tags', 'nav_menu_terms', 'custom_taxonomies_terms', 'posts', 'footer', );
-	}
-
-
 	function before_posts() {
 		$before_posts_xml = '';
 		$before_posts_xml .= $this->header();
