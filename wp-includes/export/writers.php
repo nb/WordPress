@@ -14,9 +14,7 @@ abstract class WP_WXR_Base_Writer {
 		$this->write( $this->xml_generator->after_posts() );
 	}
 
-	protected function write( $xml ) {
-		echo $xml;
-	}
+	abstract protected function write( $xml );
 }
 
 class WP_WXR_XML_Over_HTTP extends WP_WXR_Base_Writer {
