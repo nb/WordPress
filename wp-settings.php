@@ -130,6 +130,7 @@ require( ABSPATH . WPINC . '/iterators.php' );
 require( ABSPATH . WPINC . '/export/class-wp-export-query.php' );
 require( ABSPATH . WPINC . '/export/class-wp-wxr-xml-generator.php' );
 require( ABSPATH . WPINC . '/export/writers.php' );
+require( ABSPATH . WPINC . '/export/functions.export.php' );
 require( ABSPATH . WPINC . '/feed.php' );
 require( ABSPATH . WPINC . '/bookmark.php' );
 require( ABSPATH . WPINC . '/bookmark-template.php' );
