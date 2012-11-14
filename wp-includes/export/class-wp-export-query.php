@@ -4,7 +4,7 @@
  *
  * An immutable object, which gathers all data needed for the export.
  */
-class WP_WXR_Export {
+class WP_Export_Query {
 	const QUERY_CHUNK = 100;
 
 	private static $defaults = array(
@@ -141,7 +141,7 @@ class WP_WXR_Export {
 	 * methods like get_xml(), export_to_xml_file(), etc.
 	 *
 	 * Example:
-	 * $export = new WP_WXR_Export(…);
+	 * $export = new WP_Export_Query(…);
 	 * $export->export( 'WP_WXR_CSV_Writer', array( '/home/baba/baba.csv', ';' );
 	 *
 	 * @param string $writer_class_name The name of the PHP class representing the writer

@@ -8,8 +8,10 @@
  */
 define( 'WXR_VERSION', '1.2' );
 
+require_once ABSPATH . WPINC . '/xml-builder/Builder.php';
+
 /**
- * Responsible for generating the WXR XML from the data in WP_WXR_Export
+ * Responsible for generating the WXR XML from the data in WP_Export_Query
  */
 class WP_WXR_XML_Generator {
 	function __construct( $export ) {
