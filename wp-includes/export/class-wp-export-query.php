@@ -255,5 +255,5 @@ class WP_Export_Query {
 	}
 }
 
-class WP_WXR_Exception extends RuntimeException {
+class WP_Export_Exception extends RuntimeException {
 }

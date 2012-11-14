@@ -1,5 +1,5 @@
 <?php
-abstract class WP_WXR_Base_Writer {
+abstract class WP_Export_Base_Writer {
 	protected $xml_generator;
 
 	function __construct( $xml_generator ) {
@@ -17,7 +17,7 @@ abstract class WP_WXR_Base_Writer {
 	abstract protected function write( $xml );
 }
 
-class WP_WXR_XML_Over_HTTP extends WP_WXR_Base_Writer {
+class WP_Export_XML_Over_HTTP extends WP_Export_Base_Writer {
 	private $file_name;
 
 	function __construct( $xml_generator, $file_name ) {
@@ -37,7 +37,7 @@ class WP_WXR_XML_Over_HTTP extends WP_WXR_Base_Writer {
 	}
 }
 
-class WP_WXR_Returner extends WP_WXR_Base_Writer {
+class WP_Export_Returner extends WP_Export_Base_Writer {
 	private $result = '';
 
 	public function export() {
@@ -50,7 +50,7 @@ class WP_WXR_Returner extends WP_WXR_Base_Writer {
 	}
 }
 
-class WP_WXR_File_Writer extends WP_WXR_Base_Writer {
+class WP_Export_File_Writer extends WP_Export_Base_Writer {
 	private $f;
 	private $file_name;
 
@@ -62,7 +62,7 @@ class WP_WXR_File_Writer extends WP_WXR_Base_Writer {
 	public function export() {
 		$this->f = fopen( $this->file_name, 'w' );
 		if ( !$this->f ) {
-			throw new WP_WXR_Exception( sprintf( __( 'WXR Export: error opening %s for writing.' ), $this->ile_name ) );
+			throw new WP_Export_Exception( sprintf( __( 'WP Export: error opening %s for writing.' ), $this->file_name ) );
 		}
 		parent::export();
 		fclose( $this->f );
@@ -71,12 +71,12 @@ class WP_WXR_File_Writer extends WP_WXR_Base_Writer {
 	protected function write( $xml ) {
 		$res = fwrite( $this->f, $xml);
 		if ( false === $res ) {
-			throw new WP_WXR_Exception( __( 'WXR Export: error writing to export file.' ) );
+			throw new WP_Export_Exception( __( 'WP Export: error writing to export file.' ) );
 		}
 	}
 }
 
-class WP_WXR_Split_Files_Writer extends WP_WXR_Base_Writer {
+class WP_Export_Split_Files_Writer extends WP_Export_Base_Writer {
 	private $result = '';
 	private $f;
 	private $next_file_number = 0;
@@ -105,7 +105,7 @@ class WP_WXR_Split_Files_Writer extends WP_WXR_Base_Writer {
 	protected function write( $xml ) {
 		$res = fwrite( $this->f, $xml);
 		if ( false === $res ) {
-			throw new WP_WXR_Exception( __( 'WXR Export: error writing to export file.' ) );
+			throw new WP_Export_Exception( __( 'WP Export: error writing to export file.' ) );
 		}
 		$this->current_file_size += strlen( $xml );
 	}
@@ -117,7 +117,7 @@ class WP_WXR_Split_Files_Writer extends WP_WXR_Base_Writer {
 		$file_path = $this->next_file_path();
 		$this->f = fopen( $file_path, 'w' );
 		if ( !$this->f ) {
-			throw new WP_WXR_Exception( sprintf( __( 'WXR Export: error opening %s for writing.' ), $file_path ) );
+			throw new WP_Export_Exception( sprintf( __( 'WP Export: error opening %s for writing.' ), $file_path ) );
 		}
 		$this->current_file_size = 0;
 		$this->write( $this->before_posts_xml );
