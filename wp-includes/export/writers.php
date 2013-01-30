@@ -82,11 +82,12 @@ class WP_Export_Split_Files_Writer extends WP_Export_Base_Writer {
 	private $next_file_number = 0;
 	private $current_file_size = 0;
 
-	function __construct( $xml_generator, $destination_directory, $filename_template, $max_file_size = null ) {
+	function __construct( $xml_generator, $writer_args = array() ) {
 		parent::__construct( $xml_generator );
-		$this->max_file_size = is_null( $max_file_size ) ? 15 * MB_IN_BYTES : $max_file_size;
-		$this->destination_directory = $destination_directory;
-		$this->filename_template = $filename_template;
+		//TODO: check if args are not missing
+		$this->max_file_size = is_null( $writer_args['max_file_size'] ) ? 15 * MB_IN_BYTES : $max_file_size;
+		$this->destination_directory = $writer_args['destination_directory'];
+		$this->filename_template = $writer_args['filename_template'];
 		$this->before_posts_xml = $this->xml_generator->before_posts();
 		$this->after_posts_xml = $this->xml_generator->after_posts();
 	}
