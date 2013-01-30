@@ -1,17 +1,17 @@
 <?php
 abstract class WP_Export_Base_Writer {
-	protected $xml_generator;
+	protected $formatter;
 
-	function __construct( $xml_generator ) {
-		$this->xml_generator = $xml_generator;
+	function __construct( $formatter ) {
+		$this->formatter = $formatter;
 	}
 
 	public function export() {
-		$this->write( $this->xml_generator->before_posts() );
-		foreach( $this->xml_generator->posts() as $post_in_wxr ) {
+		$this->write( $this->formatter->before_posts() );
+		foreach( $this->formatter->posts() as $post_in_wxr ) {
 			$this->write( $post_in_wxr );
 		}
-		$this->write( $this->xml_generator->after_posts() );
+		$this->write( $this->formatter->after_posts() );
 	}
 
 	abstract protected function write( $xml );
@@ -20,8 +20,8 @@ abstract class WP_Export_Base_Writer {
 class WP_Export_XML_Over_HTTP extends WP_Export_Base_Writer {
 	private $file_name;
 
-	function __construct( $xml_generator, $file_name ) {
-		parent::__construct( $xml_generator );
+	function __construct( $formatter, $file_name ) {
+		parent::__construct( $formatter );
 		$this->file_name = $file_name;
 	}
 
@@ -54,8 +54,8 @@ class WP_Export_File_Writer extends WP_Export_Base_Writer {
 	private $f;
 	private $file_name;
 
-	public function __construct( $xml_generator, $file_name ) {
-		parent::__construct( $xml_generator );
+	public function __construct( $formatter, $file_name ) {
+		parent::__construct( $formatter );
 		$this->file_name = $file_name;
 	}
 
@@ -82,19 +82,19 @@ class WP_Export_Split_Files_Writer extends WP_Export_Base_Writer {
 	private $next_file_number = 0;
 	private $current_file_size = 0;
 
-	function __construct( $xml_generator, $writer_args = array() ) {
-		parent::__construct( $xml_generator );
+	function __construct( $formatter, $writer_args = array() ) {
+		parent::__construct( $formatter );
 		//TODO: check if args are not missing
 		$this->max_file_size = is_null( $writer_args['max_file_size'] ) ? 15 * MB_IN_BYTES : $max_file_size;
 		$this->destination_directory = $writer_args['destination_directory'];
 		$this->filename_template = $writer_args['filename_template'];
-		$this->before_posts_xml = $this->xml_generator->before_posts();
-		$this->after_posts_xml = $this->xml_generator->after_posts();
+		$this->before_posts_xml = $this->formatter->before_posts();
+		$this->after_posts_xml = $this->formatter->after_posts();
 	}
 
 	public function export() {
 		$this->start_new_file();
-		foreach( $this->xml_generator->posts() as $post_xml ) {
+		foreach( $this->formatter->posts() as $post_xml ) {
 			if ( $this->current_file_size + strlen( $post_xml ) > $this->max_file_size ) {
 				$this->start_new_file();
 			}

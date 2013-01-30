@@ -11,9 +11,9 @@ define( 'WXR_VERSION', '1.2' );
 require_once ABSPATH . WPINC . '/xml-builder/Builder.php';
 
 /**
- * Responsible for generating the WXR XML from the data in WP_Export_Query
+ * Responsible for formatting the data in WP_Export_Query to WXR
  */
-class WP_WXR_XML_Generator {
+class WP_Export_WXR_Formatter {
 	function __construct( $export ) {
 		$this->export = $export;
 	}
