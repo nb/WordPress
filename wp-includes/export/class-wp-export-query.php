@@ -104,6 +104,7 @@ class WP_Export_Query {
 
 	public function exportify_post( $post ) {
 		$GLOBALS['wp_query']->in_the_loop = true;
+		$previous_global_post = $GLOBALS['post'];
 		$GLOBALS['post'] = $post;
 		setup_postdata( $post );
 		$post->post_content = apply_filters( 'the_content_export', $post->post_content );
@@ -112,6 +113,7 @@ class WP_Export_Query {
 		$post->terms = self::get_terms_for_post( $post );
 		$post->meta = self::get_meta_for_post( $post );
 		$post->comments = self::get_comments_for_post( $post );
+		$GLOBALS['post'] = $previous_global_post;
 		return $post;
 	}
 
