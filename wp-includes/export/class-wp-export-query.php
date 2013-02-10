@@ -106,9 +106,12 @@ class WP_Export_Query {
 		$GLOBALS['wp_query']->in_the_loop = true;
 		$GLOBALS['post'] = $post;
 		setup_postdata( $post );
-		$post->post_title_rss = apply_filters( 'the_title_rss', $post->post_title );
+		$post->post_content = apply_filters( 'the_content_export', $post->post_content );
+		$post->post_excerpt = apply_filters( 'the_excerpt_export', $post->post_excerpt );
 		$post->is_sticky = is_sticky( $post->ID ) ? 1 : 0;
-		// TODO: add the rest of the extra fields, modifications, etc.
+		$post->terms = self::get_terms_for_post( $post );
+		$post->meta = self::get_meta_for_post( $post );
+		$post->comments = self::get_comments_for_post( $post );
 		return $post;
 	}
 
@@ -252,6 +255,38 @@ class WP_Export_Query {
 				$terms[] = $term;
 		}
 		return $sorted;
+	}
+
+	private static function get_terms_for_post( $post ) {
+		$taxonomies = get_object_taxonomies( $post->post_type );
+		if ( empty( $taxonomies ) )
+			return array();
+		$terms = wp_get_object_terms( $post->ID, $taxonomies );
+		$terms = $terms? $terms : array();
+		return $terms;
+	}
+
+	private static function get_meta_for_post( $post ) {
+		global $wpdb;
+		$meta_for_export = array();
+		$meta_from_db = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->postmeta WHERE post_id = %d", $post->ID ) );
+		foreach ( $meta_from_db as $meta ) {
+			if ( apply_filters( 'wxr_export_skip_postmeta', false, $meta->meta_key, $meta ) )
+				continue;
+			$meta_for_export[] = $meta;
+		}
+		return $meta_for_export;
+	}
+
+	private static function get_comments_for_post( $post ) {
+		global $wpdb;
+		$comments = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_approved <> 'spam'", $post->ID ) );
+		foreach( $comments as $comment ) {
+			$meta = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->commentmeta WHERE comment_id = %d", $comment->comment_ID ) );
+			$meta = $meta? $meta : array();
+			$comment->meta = $meta;
+		}
+		return $comments;
 	}
 }
 
