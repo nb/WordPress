@@ -99,7 +99,11 @@ class WP_Export_Query {
 	}
 
 	public function nav_menu_terms() {
-		return wp_get_nav_menus();
+		$nav_menus = wp_get_nav_menus();
+		foreach( $nav_menus as &$term ) {
+			$term->description = '';
+		}
+		return $nav_menus;
 	}
 
 	public function exportify_post( $post ) {
