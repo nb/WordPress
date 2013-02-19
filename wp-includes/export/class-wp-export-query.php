@@ -191,11 +191,19 @@ class WP_Export_Query {
 
 	private function end_date_where() {
 		global $wpdb;
-		$timestamp = strtotime( $this->filters['end_date'] );
+		if ( preg_match( '/^\d{4}-\d{2}$/', $this->filters['end_date'] ) ) {
+			$timestamp = $this->get_timestamp_for_the_last_day_of_a_month( $this->filters['end_date'] );
+		} else {
+			$timestamp = strtotime( $this->filters['end_date'] );
+		}
 		if ( !$timestamp ) {
 			return;
 		}
 		$this->wheres[] = $wpdb->prepare( 'p.post_date <= %s', date( 'Y-m-d 23:59:59', $timestamp ) );
+	}
+
+	private function get_timestamp_for_the_last_day_of_a_month( $yyyy_mm ) {
+		return strtotime( "$yyyy_mm +1month -1day" );
 	}
 
 	private function category_where() {
