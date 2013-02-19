@@ -17,3 +17,14 @@ function wp_export( $args = array() ) {
 		return new WP_Error( 'wp-export-error', $e->getMessage() );
 	}
 }
+
+function wp_export_new_style_args_from_old_style_args( $args ) {
+	if ( isset( $args['content'] ) ) {
+		if ( 'all' == $args['content'] ) {
+			unset( $args['content'] );
+		} else {
+			$args['post_type'] = $args['content'];
+		}
+	}
+	return $args;
+}
