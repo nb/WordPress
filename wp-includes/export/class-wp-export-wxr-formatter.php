@@ -14,12 +14,12 @@ require_once ABSPATH . WPINC . '/export/class-wp-export-oxymel.php';
  * Responsible for formatting the data in WP_Export_Query to WXR
  */
 class WP_Export_WXR_Formatter {
-	function __construct( $export ) {
+	public function __construct( $export ) {
 		$this->export = $export;
 		$this->wxr_version = WXR_VERSION;
 	}
 
-	function before_posts() {
+	public function before_posts() {
 		$before_posts_xml = '';
 		$before_posts_xml .= $this->header();
 		$before_posts_xml .= $this->site_metadata();
@@ -32,15 +32,15 @@ class WP_Export_WXR_Formatter {
 		return $before_posts_xml;
 	}
 
-	function posts() {
+	public function posts() {
 		return new WP_Map_Iterator( $this->export->posts(), array( $this, 'post' ) );
 	}
 
-	function after_posts() {
+	public function after_posts() {
 		return $this->footer();
 	}
 
-	function header() {
+	public function header() {
 		$oxymel = new Oxymel;
 		$charset = $this->export->charset();
 		$wp_generator_tag = $this->export->wp_generator_tag();
@@ -81,7 +81,7 @@ COMMENT;
 
 	}
 
-	function site_metadata() {
+	public function site_metadata() {
 		$oxymel = new Oxymel;
 		$metadata = $this->export->site_metadata();
 		return $oxymel
@@ -96,7 +96,7 @@ COMMENT;
 			->to_string();
 	}
 
-	function authors() {
+	public function authors() {
 		$oxymel = new Oxymel;
 		$authors = $this->export->authors();
 		foreach ( $authors as $author ) {
@@ -112,7 +112,7 @@ COMMENT;
 		return $oxymel->to_string();
 	}
 
-	function categories() {
+	public function categories() {
 		$oxymel = new WP_Export_Oxymel;
 		$categories = $this->export->categories();
 		foreach( $categories as $term_id => $category ) {
@@ -128,7 +128,7 @@ COMMENT;
 		return $oxymel->to_string();
 	}
 
-	function tags() {
+	public function tags() {
 		$oxymel = new WP_Export_Oxymel;
 		$tags = $this->export->tags();
 		foreach( $tags as $tag ) {
@@ -142,42 +142,22 @@ COMMENT;
 		return $oxymel->to_string();
 	}
 
-	function nav_menu_terms() {
+	public function nav_menu_terms() {
 		return $this->terms( $this->export->nav_menu_terms() );
 	}
 
-	function custom_taxonomies_terms() {
+	public function custom_taxonomies_terms() {
 		return $this->terms( $this->export->custom_taxonomies_terms() );
 	}
 
-	function rss2_head_action() {
+	public function rss2_head_action() {
 		ob_start();
 		do_action( 'rss2_head' );
 		$action_output = ob_get_clean();
 		return $action_output;
 	}
 
-	private function terms( $terms ) {
-		$oxymel = new WP_Export_Oxymel;
-		foreach( $terms as $term ) {
-			$term->parent_slug = $term->parent? $terms[$term->parent]->slug : '';
-			$oxymel->tag( 'wp:term' )->contains
-				->tag( 'wp:term_id', $term->term_id )
-				->tag( 'wp:term_taxonomy', $term->taxonomy )
-				->tag( 'wp:term_slug', $term->slug );
-			if ( 'nav_menu' != $term->taxonomy ) {
-				$oxymel
-				->tag( 'wp:term_parent', $term->parent_slug );
-			}
-				$oxymel
-				->optional_cdata( 'wp:term_name', $term->name )
-				->optional_cdata( 'wp:term_description', $term->description )
-				->end;
-		}
-		return $oxymel->to_string();
-	}
-
-	function post( $post ) {
+	public function post( $post ) {
 		$oxymel = new WP_Export_Oxymel;
 		$GLOBALS['wp_query']->in_the_loop = true;
 		$GLOBALS['post'] = $post;
@@ -239,7 +219,32 @@ COMMENT;
 		return $oxymel->to_string();
 	}
 
-	private function comment_meta( $comment ) {
+	public function footer() {
+		$oxymel = new Oxymel;
+		return $oxymel->close_channel->close_rss->to_string();
+	}
+
+	protected function terms( $terms ) {
+		$oxymel = new WP_Export_Oxymel;
+		foreach( $terms as $term ) {
+			$term->parent_slug = $term->parent? $terms[$term->parent]->slug : '';
+			$oxymel->tag( 'wp:term' )->contains
+				->tag( 'wp:term_id', $term->term_id )
+				->tag( 'wp:term_taxonomy', $term->taxonomy )
+				->tag( 'wp:term_slug', $term->slug );
+			if ( 'nav_menu' != $term->taxonomy ) {
+				$oxymel
+				->tag( 'wp:term_parent', $term->parent_slug );
+			}
+				$oxymel
+				->optional_cdata( 'wp:term_name', $term->name )
+				->optional_cdata( 'wp:term_description', $term->description )
+				->end;
+		}
+		return $oxymel->to_string();
+	}
+
+	protected function comment_meta( $comment ) {
 		global $wpdb;
 		$metas = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->commentmeta WHERE comment_id = %d", $comment->comment_ID ) );
 		if ( !$metas ) {
@@ -253,11 +258,5 @@ COMMENT;
 			->end;
 		}
 		return $oxymel;
-	}
-
-
-	function footer() {
-		$oxymel = new Oxymel;
-		return $oxymel->close_channel->close_rss->to_string();
 	}
 }
