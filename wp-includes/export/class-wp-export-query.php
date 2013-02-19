@@ -287,6 +287,9 @@ class WP_Export_Query {
 		foreach ( $meta_from_db as $meta ) {
 			if ( apply_filters( 'wxr_export_skip_postmeta', false, $meta->meta_key, $meta ) )
 				continue;
+			if ( in_array( $meta->meta_key, array( '_edit_lock', '_wp_attachment_metadata', '_wp_attached_file' ) ) ) {
+				continue;
+			}
 			$meta_for_export[] = $meta;
 		}
 		return $meta_for_export;
