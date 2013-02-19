@@ -8,23 +8,7 @@
  */
 define( 'WXR_VERSION', '1.2' );
 
-require_once ABSPATH . WPINC . '/Oxymel.php';
-
-class WP_Export_Oxymel extends Oxymel {
-	public function optional( $tag_name, $contents ) {
-		if ( $contents ) {
-			$this->$tag_name( $contents );
-		}
-		return $this;
-	}
-
-	public function optional_cdata( $tag_name, $contents ) {
-		if ( $contents ) {
-			$this->$tag_name->contains->cdata( $contents )->end;
-		}
-		return $this;
-	}
-}
+require_once ABSPATH . WPINC . '/export/class-wp-export-oxymel.php';
 
 /**
  * Responsible for formatting the data in WP_Export_Query to WXR
