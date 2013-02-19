@@ -103,7 +103,15 @@ if ( isset( $_GET['download'] ) ) {
 	 */
 	$args = apply_filters( 'export_args', $args );
 
-	export_wp( $args );
+	$args = wp_export_new_style_args_from_old_style_args( $args );
+
+	$sitename = sanitize_key( get_bloginfo( 'name' ) );
+	if ( ! empty($sitename) ) $sitename .= '.';
+	$file_name = $sitename . 'wordpress.' . date( 'Y-m-d' ) . '.xml';
+
+	do_action( 'export_wp' );
+
+	wp_export( array( 'filters' => $args, 'writer' => 'WP_Export_XML_Over_HTTP', 'writer_args' => $file_name ) );
 	die();
 }
 
