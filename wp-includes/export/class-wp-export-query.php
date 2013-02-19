@@ -104,7 +104,7 @@ class WP_Export_Query {
 
 	public function exportify_post( $post ) {
 		$GLOBALS['wp_query']->in_the_loop = true;
-		$previous_global_post = $GLOBALS['post'];
+		$previous_global_post = isset( $GLOBALS['post'] )? $GLOBALS['post'] : null;
 		$GLOBALS['post'] = $post;
 		setup_postdata( $post );
 		$post->post_content = apply_filters( 'the_content_export', $post->post_content );
