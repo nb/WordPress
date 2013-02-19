@@ -165,7 +165,7 @@ COMMENT;
 
 		$oxymel->item->contains
 			->title( apply_filters( 'the_title_rss', $post->post_title ) )
-			->link( apply_filters('the_permalink_rss', get_permalink() ) )
+			->link( esc_url( apply_filters('the_permalink_rss', get_permalink() ) ) )
 			->pubDate( mysql2date( 'D, d M Y H:i:s +0000', get_post_time( 'Y-m-d H:i:s', true ), false ) )
 			->tag( 'dc:creator', get_the_author_meta( 'login' ) )
 			->guid( get_the_guid(), array( 'isPermaLink' => 'false' ) )
@@ -202,7 +202,7 @@ COMMENT;
 				->tag( 'wp:comment_id', $comment->comment_ID )
 				->tag( 'wp:comment_author' )->contains->cdata( $comment->comment_author )->end
 				->tag( 'wp:comment_author_email', $comment->comment_author_email )
-				->tag( 'wp:comment_author_url', $comment->comment_author_url )
+				->tag( 'wp:comment_author_url', esc_url( $comment->comment_author_url ) )
 				->tag( 'wp:comment_author_IP', $comment->comment_author_IP )
 				->tag( 'wp:comment_date', $comment->comment_date )
 				->tag( 'wp:comment_date_gmt', $comment->comment_date_gmt )
