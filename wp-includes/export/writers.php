@@ -95,7 +95,7 @@ class WP_Export_Split_Files_Writer extends WP_Export_Base_Writer {
 	public function export() {
 		$this->start_new_file();
 		foreach( $this->formatter->posts() as $post_xml ) {
-			if ( $this->current_file_size + strlen( $post_xml ) > $this->max_file_size ) {
+			if ( ( $this->current_file_size + strlen( $post_xml ) ) > $this->max_file_size ) {
 				$this->start_new_file();
 			}
 			$this->write( $post_xml );
