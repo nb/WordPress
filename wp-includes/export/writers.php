@@ -26,14 +26,25 @@ class WP_Export_XML_Over_HTTP extends WP_Export_Base_Writer {
 	}
 
 	public function export() {
-		header( 'Content-Description: File Transfer' );
-		header( 'Content-Disposition: attachment; filename=' . $this->file_name );
-		header( 'Content-Type: text/xml; charset=' . get_option( 'blog_charset' ), true );
-		parent::export();
+		$export = $this->get_export();
+		$this->send_headers();
+		echo $export;
 	}
 
 	protected function write( $xml ) {
-		echo $xml;
+		$this->result .= $xml;
+	}
+
+	protected function get_export() {
+		$this->result = '';
+		parent::export();
+		return $this->result;
+	}
+
+	protected function send_headers() {
+		header( 'Content-Description: File Transfer' );
+		header( 'Content-Disposition: attachment; filename=' . $this->file_name );
+		header( 'Content-Type: text/xml; charset=' . get_option( 'blog_charset' ), true );
 	}
 }
 
