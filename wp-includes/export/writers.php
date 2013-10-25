@@ -41,7 +41,7 @@ class WP_Export_Returner extends WP_Export_Base_Writer {
 	private $result = '';
 
 	public function export() {
-		$this->private = '';
+		$this->result = '';
 		parent::export();
 		return $this->result;
 	}
